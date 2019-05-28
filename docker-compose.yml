@@ -1,0 +1,57 @@
+version: '3'
+
+services:
+  mysql-docker-service-1:
+    container_name: srinivas-container
+    image: mysql:latest
+    ports:
+      - 2012:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=vasu
+      - MYSQL_USER=mysql
+      - MYSQL_PASSWORD=mysql
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d/
+  ibm-mq-service:
+    container_name: ibm-mq-container
+    image: ibmcom/mq
+    ports:
+      - 1414:1414
+      - 9443:9443
+    environment:
+      - LICENSE=accept
+      - MQ_QMGR_NAME=QM1
+    volumes:
+      - qm1data-7:/mnt/mqm
+  rabbit-mq-service:
+    container_name: rabbit-mq-container
+    image: rabbitmq:3-management
+    hostname: vasu-rabbit-host
+    ports:
+      - 5672:5672
+      - 15672:15672
+  redis-service:
+    container_name: redis-container
+    image: redis
+    ports:
+      - 6379:6379
+    volumes:
+      - redisvolume:/data
+    entrypoint: redis-server --appendonly yes
+  spring-boot-hibernate-service-1:
+    container_name: srinivas-container-5
+    image: srinivas-image-5
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    links:
+      - mysql-docker-service-1
+      - ibm-mq-service
+      - rabbit-mq-service
+      - redis-service
+    ports:
+      - 8080:8080
+volumes:
+  qm1data-7:
+  redisvolume:
